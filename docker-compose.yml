@@ -1,0 +1,37 @@
+version: '3.9'
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: jonetsu_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: jonetsu
+      POSTGRES_PASSWORD: changeme
+      POSTGRES_DB: jonetsu_db
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+
+  backend:
+    build:
+      context: ./backend
+    container_name: jonetsu_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_USER: jonetsu
+      DATABASE_PASSWORD: changeme
+      DATABASE_NAME: jonetsu_db
+      JWT_SECRET: super-secret-jonetsu
+      JWT_EXPIRES_IN: 3600s
+    depends_on:
+      - postgres
+    ports:
+      - '3000:3000'
+
+volumes:
+  postgres-data:

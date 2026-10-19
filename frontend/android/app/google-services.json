@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "280592667423",
+    "project_id": "the-black-wolf-ink",
+    "storage_bucket": "the-black-wolf-ink.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:280592667423:android:2175ca6e6ef220d369562a",
+        "android_client_info": {
+          "package_name": "com.example.jonetsu"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwmryzxz0SdExZ7q15mPIpsCkAvXN5PTI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:280592667423:android:6a1f99518c8597f069562a",
+        "android_client_info": {
+          "package_name": "com.example.theblackwolf"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwmryzxz0SdExZ7q15mPIpsCkAvXN5PTI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:280592667423:android:13827545a35bc9f469562a",
+        "android_client_info": {
+          "package_name": "com.example.theblackwolfink"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDwmryzxz0SdExZ7q15mPIpsCkAvXN5PTI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

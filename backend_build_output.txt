@@ -1,0 +1,4 @@
+
+> jonetsu-backend@0.1.0 build:tsc
+> node ./node_modules/typescript/bin/tsc -p tsconfig.json
+
