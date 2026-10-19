@@ -1,24 +1,44 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../features/auth/auth_providers.dart';
+import '../models/user_model.dart';
+import '../presentation/screens/admin/admin_dashboard_screen.dart';
+import '../presentation/screens/ai/akira_chat_screen.dart';
+import '../presentation/screens/auth/leaderboard_screen.dart';
 import '../presentation/screens/auth/login_screen.dart';
+import '../presentation/screens/auth/profile_screen.dart';
 import '../presentation/screens/auth/register_screen.dart';
+import '../presentation/screens/chat/chat_detail_screen.dart';
+import '../presentation/screens/chat/chat_list_screen.dart';
+import '../presentation/screens/duels/duels_screen.dart';
 import '../presentation/screens/home_screen.dart';
+import '../presentation/screens/news/feed_screen.dart';
 import '../presentation/screens/onboarding_screen.dart';
 import '../presentation/screens/splash_screen.dart';
-import '../presentation/screens/chat/chat_list_screen.dart';
-import '../presentation/screens/chat/chat_detail_screen.dart';
-import '../presentation/screens/ai/akira_chat_screen.dart';
-import '../presentation/screens/news/feed_screen.dart';
-import '../presentation/screens/auth/profile_screen.dart';
-import '../presentation/screens/duels/duels_screen.dart';
-import '../presentation/screens/streaming/anime_list_screen.dart';
 import '../presentation/screens/streaming/anime_detail_screen.dart';
-import '../presentation/screens/auth/leaderboard_screen.dart';
-import '../presentation/screens/admin/admin_dashboard_screen.dart';
+import '../presentation/screens/streaming/anime_list_screen.dart';
 
-GoRouter createAppRouter({
-  required bool Function() isLoggedIn,
-}) {
+class RouterNotifier extends ChangeNotifier {
+  final Ref _ref;
+
+  RouterNotifier(this._ref) {
+    _ref.listen<AsyncValue<UserModel?>>(
+      authNotifierProvider,
+      (_, __) => notifyListeners(),
+    );
+  }
+}
+
+final routerNotifierProvider = Provider<RouterNotifier>((ref) {
+  return RouterNotifier(ref);
+});
+
+final routerProvider = Provider<GoRouter>((ref) {
+  final notifier = ref.watch(routerNotifierProvider);
+
   return GoRouter(
+    refreshListenable: notifier,
     initialLocation: '/',
     routes: [
       GoRoute(path: '/', builder: (context, state) => const SplashScreen()),
@@ -87,7 +107,8 @@ GoRouter createAppRouter({
       ),
     ],
     redirect: (context, state) {
-      final loggedIn = isLoggedIn();
+      final authState = ref.read(authNotifierProvider);
+      final loggedIn = authState.asData?.value != null;
       final path = state.uri.path;
       final isAuthRoute = path == '/login' ||
           path == '/register' ||
@@ -104,4 +125,4 @@ GoRouter createAppRouter({
       return null;
     },
   );
-}
+});

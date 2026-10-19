@@ -18,14 +18,24 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   String? get token => _token;
 
   // Inscription
-  Future<void> signUpWithEmailPassword(String email, String username, String password) async {
+  Future<void> signUpWithEmailPassword(
+      String email, String username, String password) async {
     state = const AsyncLoading();
     try {
-      final response = await _firebaseAuthService.signUpWithEmailPassword(email, password, username);
+      // 1. Essai direct via l'API NestJS principale
+      final response = await _authService.register(email, username, password);
       await _handleAuthSuccess(response);
-    } catch (e, st) {
-      state = AsyncError(e, st);
-      rethrow;
+    } catch (backendError) {
+      print('NestJS registration failed, attempting Firebase fallback: $backendError');
+      try {
+        // 2. Fallback Firebase si NestJS échoue
+        final response = await _firebaseAuthService.signUpWithEmailPassword(
+            email, password, username);
+        await _handleAuthSuccess(response);
+      } catch (firebaseError) {
+        state = AsyncError(backendError, StackTrace.current);
+        rethrow;
+      }
     }
   }
 
@@ -33,19 +43,28 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   Future<void> signInWithEmailPassword(String email, String password) async {
     state = const AsyncLoading();
     try {
-      final response = await _firebaseAuthService.signInWithEmailPassword(email, password);
+      // 1. Essai direct via l'API NestJS principale
+      final response = await _authService.login(email, password);
       await _handleAuthSuccess(response);
-    } catch (e, st) {
-      state = AsyncError(e, st);
-      rethrow;
+    } catch (backendError) {
+      print('NestJS login failed, attempting Firebase fallback: $backendError');
+      try {
+        // 2. Fallback Firebase
+        final response = await _firebaseAuthService.signInWithEmailPassword(
+            email, password);
+        await _handleAuthSuccess(response);
+      } catch (firebaseError) {
+        state = AsyncError(backendError, StackTrace.current);
+        rethrow;
+      }
     }
   }
 
   // Restauration de session
   Future<void> restoreSession() async {
-    state = const AsyncLoading();
     try {
-      final response = await _firebaseAuthService.signInWithCurrentFirebaseUser();
+      final response =
+          await _firebaseAuthService.signInWithCurrentFirebaseUser();
       await _handleAuthSuccess(response);
     } catch (_) {
       state = const AsyncData(null);
@@ -66,21 +85,33 @@ class AuthNotifier extends StateNotifier<AsyncValue<UserModel?>> {
 
   Future<void> _handleAuthSuccess(Map<String, dynamic> data) async {
     _token = data['accessToken']?.toString();
-    if (_token != null) {
+    if (_token != null && _token!.isNotEmpty) {
       ApiService.setAuthToken(_token!);
-      await _socketService.connect(_token!);
+      try {
+        await _socketService.connect(_token!);
+      } catch (e) {
+        print('Socket connection optional error: $e');
+      }
     }
     final user = _authService.parseUser(data);
     state = AsyncData(user);
     if (user.id.isNotEmpty) {
-      await NotificationService().updateTokenOnBackend(user.id);
+      try {
+        await NotificationService().updateTokenOnBackend(user.id);
+      } catch (e) {
+        print('Notification token update optional error: $e');
+      }
     }
   }
 
   void logout() {
     _token = null;
-    _firebaseAuthService.signOut();
-    _socketService.disconnect();
+    try {
+      _firebaseAuthService.signOut();
+    } catch (_) {}
+    try {
+      _socketService.disconnect();
+    } catch (_) {}
     ApiService.clearAuthToken();
     state = const AsyncData(null);
   }
