@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, OnApplicationBootstrap } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -9,13 +9,49 @@ import { RegisterDto } from './dto/register.dto';
 import { FirebaseService } from './firebase.service';
 
 @Injectable()
-export class AuthService {
+export class AuthService implements OnApplicationBootstrap {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly firebaseService: FirebaseService,
   ) {}
+
+  async onApplicationBootstrap() {
+    try {
+      const existingAdmin = await this.userRepository.findOne({ where: { email: 'admin@jonetsu.com' } });
+      if (!existingAdmin) {
+        const passwordHash = await hash('Jonetsu2026!', 12);
+        const admin = this.userRepository.create({
+          email: 'admin@jonetsu.com',
+          username: 'admin',
+          displayName: 'JōNETSU Admin',
+          role: 'admin',
+          passwordHash,
+          authProvider: 'email',
+        });
+        await this.userRepository.save(admin);
+        console.log('✔ Default admin account auto-created: admin@jonetsu.com / Jonetsu2026!');
+      }
+
+      const existingUser = await this.userRepository.findOne({ where: { email: 'otaku@jonetsu.com' } });
+      if (!existingUser) {
+        const passwordHash = await hash('Jonetsu2026!', 12);
+        const user = this.userRepository.create({
+          email: 'otaku@jonetsu.com',
+          username: 'otaku',
+          displayName: 'Otaku Member',
+          role: 'user',
+          passwordHash,
+          authProvider: 'email',
+        });
+        await this.userRepository.save(user);
+        console.log('✔ Default user account auto-created: otaku@jonetsu.com / Jonetsu2026!');
+      }
+    } catch (e) {
+      console.warn('Auto-bootstrap default accounts skipped or already initialized:', e?.message || e);
+    }
+  }
 
   async validateUser(email: string, password: string): Promise<User> {
     const user = await this.userRepository.findOne({ where: { email } });
