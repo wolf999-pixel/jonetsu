@@ -1,0 +1,25 @@
+name: jonetsu-app
+services:
+  - name: jonetsu-backend
+    git:
+      repository: github.com/wolf999-pixel/jonetsu
+      branch: main
+      workdir: backend
+    build:
+      command: npm install && npm run build
+    run:
+      command: npm run start:prod
+    ports:
+      - port: 8000
+        path: /
+    env:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8000
+      - key: DATABASE_URL
+        value: postgresql://postgres.vqatkfxvcpcyeukvqypx:JonetsuDb2026!@aws-0-eu-central-1.pooler.supabase.com:6543/postgres
+      - key: JWT_SECRET
+        value: super-secret-key-jonetsu-2026-prod
+      - key: ALLOWED_ORIGINS
+        value: "*"
