@@ -3,7 +3,7 @@ import { AppModule } from '../app.module';
 import { Repository } from 'typeorm';
 import { User } from '../users/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { hash } from 'bcrypt';
+import { hash } from 'bcryptjs';
 
 async function bootstrapAdmin() {
   const app = await NestFactory.createApplicationContext(AppModule);
